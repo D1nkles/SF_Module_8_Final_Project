@@ -1,57 +1,70 @@
-﻿class Task1
+﻿using System.IO;
+
+class Task1
 {
-    static void Main(string[] args)
+    static void ClearFolder(string PATH)
     {
         var timeCheck = TimeSpan.FromMinutes(30);
 
-        while (true)
+        if (Directory.Exists(PATH))
         {
-            Console.Write("Введите путь к папке: ");
-            string PATH = Console.ReadLine();
+            DirectoryInfo directory = new DirectoryInfo(PATH);
 
-            if (Directory.Exists(PATH))
+            var directories = directory.GetDirectories();
+            var files = directory.GetFiles();
+
+            foreach (var file in files)
             {
-                DirectoryInfo mainDirectory = new DirectoryInfo(PATH);
-
-                var directories = mainDirectory.GetDirectories();
-                var files = mainDirectory.GetFiles();
-
-                foreach (var directory in directories)
+                try
                 {
-                    try
+                    var timeUnused = DateTime.Now - file.LastAccessTime;
+                    if (timeUnused > timeCheck)
                     {
-                        var timeUnused = DateTime.Now - directory.LastAccessTime;
-                        if (timeUnused > timeCheck)
-                        {
-                            directory.Delete(true);
-                        }
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
-                        Console.WriteLine($"Ошибка: Системе не удалось получить доступ к папке {directory.Name}!!!");
+                        file.Delete();
                     }
                 }
-
-                foreach (var file in files)
+                catch (UnauthorizedAccessException)
                 {
-                    try
-                    {
-                        var timeUnused = DateTime.Now - file.LastAccessTime;
-                        if (timeUnused > timeCheck)
-                        {
-                            file.Delete();
-                        }
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
-                        Console.WriteLine($"Ошибка: Системе не удалось получить доступ к файлу {file.Name}!!!");
-                    }
+                    Console.WriteLine($"Ошибка: Системе не удалось получить доступ к файлу {file.Name}!!!");
                 }
             }
-            else
+
+            foreach (var dir in directories)
             {
-                Console.WriteLine("Ошибка: Папки по такому пути не существует!!!");
+                try
+                {
+                    var timeUnused = DateTime.Now - dir.LastAccessTime;
+                    if (timeUnused > timeCheck)
+                    {
+                        ClearFolder(dir.FullName);
+                        try 
+                        {
+                            dir.Delete();
+                        }
+                        catch (Exception)
+                        {
+                            Console.WriteLine("Ошибка: в папке, которую программа пыталась удалить, находится файл, не соответсвующий условию удаления!!!");
+                        }
+                    }
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    Console.WriteLine($"Ошибка: Системе не удалось получить доступ к папке {dir.Name}!!!");
+                }
             }
         }
+        else
+        {
+            Console.WriteLine("Ошибка: Папки по такому пути не существует!!!");
+        }
+
+    }
+
+    static void Main(string[] args)
+    {
+
+        Console.Write("Введите путь к папке: ");
+        string PATH = Console.ReadLine();
+        ClearFolder(PATH);
     }
 }

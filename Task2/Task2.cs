@@ -40,7 +40,6 @@
 
             return dirSize;
         }
-
         else
         {
             Console.WriteLine("Ошибка: Папки по такому пути не существует!!!");
